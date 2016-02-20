@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kalah</title>
+    <script src="sockjs-0.3.4.js"></script>
+    <script src="stomp.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
+
+        function setConnected(connected) {
+            document.getElementById('connect').disabled = connected;
+            document.getElementById('disconnect').disabled = !connected;
+            document.getElementById('eventsDiv').style.visibility = connected ? 'visible' : 'hidden';
+            document.getElementById('events').innerHTML = '';
+        }
+
+        function connect() {
+            var socket = new SockJS('/kalah');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/events', function (event) {
+                    showEvent(JSON.parse(event.body).message);
+                });
+
+                stompClient.subscribe('/topic/board', function (event) {
+                    updateBoard(JSON.parse(event.body).pits);
+                    showEvent(JSON.parse(event.body).message.message);
+                });
+            });
+        }
+
+        function disconnect() {
+            if (stompClient != null) {
+                stompClient.disconnect();
+            }
+            showBoard(true);
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        function joinGame() {
+            var name = document.getElementById('name').value;
+            document.getElementById('name').disabled = true;
+            document.getElementById('joinGame').disabled = true;
+            stompClient.send("/game/join", {}, JSON.stringify({'name': name}));
+            showBoard(true);
+        }
+
+        function showEvent(message) {
+            var events = document.getElementById('events');
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(message));
+            events.insertBefore(p, events.firstChild);
+        }
+
+        function showBoard(show) {
+            document.getElementById('boardDiv').style.visibility = show ? 'visible' : 'hidden';
+        }
+
+        function updateBoard(pits) {
+            var arrayLength = pits.length;
+            for (var i = 0; i < arrayLength; i++) {
+                document.getElementById("P" + i).innerHTML = '' + pits[i];
+            }
+        }
+
+        function play() {
+            var name = document.getElementById('name').value;
+            var pit = document.querySelector('input[name = "pit"]:checked').value
+            stompClient.send("/game/play", {}, JSON.stringify({'player': {'name': name}, 'pit': pit}));
+        }
+    </script>
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
+    enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
+<div>
+    <div>
+        <p>Connect to the Server</p>
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+    </div>
+    <div style="width: 100%; overflow: hidden;">
+        <div id="eventsDiv" style="width: 400px; float: left;">
+            <label>What is your name?</label><input type="text" id="name"/>
+            <button id="joinGame" onclick="joinGame();">Join</button>
+            <p id="events"></p>
+        </div>
+        <div id="boardDiv" style="margin-left: 400px;">
+            <p>Game Board</p>
+            <table style="width:100%" border="1">
+                <tr>
+                    <td id="P13" rowspan="2" value="13" bgcolor="#daa520" align="center" style="font-weight: bold">0</td>
+                    <td bgcolor="#daa520" align="center">
+                        <input type="radio" name="pit" value="12">
+                        <label id="P12">6</label>
+                    </td>
+                    <td bgcolor="#daa520" align="center">
+                        <input type="radio" name="pit" value="11">
+                        <label id="P11">6</label>
+                    </td>
+                    <td bgcolor="#daa520" align="center">
+                        <input type="radio" name="pit" value="10">
+                        <label id="P10">6</label>
+                    </td>
+                    <td bgcolor="#daa520" align="center">
+                        <input type="radio" name="pit" value="9">
+                        <label id="P9">6</label>
+                    </td>
+                    <td bgcolor="#daa520" align="center">
+                        <input type="radio" name="pit" value="8">
+                        <label id="P8">6</label>
+                    </td>
+                    <td bgcolor="#daa520" align="center">
+                        <input type="radio" name="pit" value="7">
+                        <label id="P7">6</label>
+                    </td>
+                    <td id="P6" rowspan="2" value="6" bgcolor="#6495ed" align="center" style="font-weight: bold">0</td>
+                </tr>
+                <tr>
+                    <td bgcolor="#6495ed" align="center">
+                        <input type="radio" name="pit" value="0">
+                        <label id="P0">6</label>
+                    </td>
+                    <td bgcolor="#6495ed" align="center">
+                        <input type="radio" name="pit" value="1">
+                        <label id="P1">6</label>
+                    </td>
+                    <td bgcolor="#6495ed" align="center">
+                        <input type="radio" name="pit" value="2">
+                        <label id="P2">6</label>
+                    </td>
+                    <td bgcolor="#6495ed" align="center">
+                        <input type="radio" name="pit" value="3">
+                        <label id="P3">6</label>
+                    </td>
+                    <td bgcolor="#6495ed" align="center">
+                        <input type="radio" name="pit" value="4">
+                        <label id="P4">6</label>
+                    </td>
+                    <td bgcolor="#6495ed" align="center">
+                        <input type="radio" name="pit" value="5">
+                        <label id="P5">6</label>
+                    </td>
+                </tr>
+            </table>
+            <button id="play" onclick="play();">Play</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
