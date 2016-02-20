@@ -22,3 +22,7 @@ git clone git://github.com/pgracio/kalah.git
 cd kalah
 ./gradlew bootRun
 ```
+
+How to Play?
+--------------
+Open your favorite web browser and access http://localhost:8080 
