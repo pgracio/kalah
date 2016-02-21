@@ -70,8 +70,12 @@
 
         function play() {
             var name = document.getElementById('name').value;
-            var pit = document.querySelector('input[name = "pit"]:checked').value
-            stompClient.send("/game/play", {}, JSON.stringify({'player': {'name': name}, 'pit': pit}));
+            var elementPit = document.querySelector('input[name = "pit"]:checked');
+
+            if(name && elementPit) {
+                var pit = elementPit.value;
+                stompClient.send("/game/play", {}, JSON.stringify({'player': {'name': name}, 'pit': pit}));
+            }
         }
     </script>
 </head>
