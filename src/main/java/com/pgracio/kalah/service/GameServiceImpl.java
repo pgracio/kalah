@@ -1,5 +1,6 @@
 package com.pgracio.kalah.service;
 
+import com.pgracio.kalah.engine.Board;
 import com.pgracio.kalah.engine.GameEngine;
 import com.pgracio.kalah.message.BoardMessage;
 import com.pgracio.kalah.message.EventMessage;

@@ -48,15 +48,41 @@ public class GameEngine {
     return switchPlayer(random);
   }
 
-  public BoardMessage play(PlayMessage message) {
-    final BoardMessage boardMessage = board.play(message, playerPosition(message.getPlayer().getName()));
+  private void reset() {
+    board = new Board();
+    player1 = null;
+    player2 = null;
+  }
 
-    if (boardMessage.getNextMove() == null) {
-      switchToOtherPlayer(message.getPlayer().getName());
-      boardMessage.setNextMove(nextMove);
-      boardMessage.setMessage(MessageUtil.createEventMessage(nextMove.getName()
-          + " it's your turn now."));
+  public BoardMessage play(PlayMessage message) {
+    final Next next = board.play(message.getPit(), playerPosition(message.getPlayer().getName()));
+
+    BoardMessage boardMessage = BoardMessage.builder().build();
+
+    switch (next) {
+      case SAME_PLAYER:
+        boardMessage = BoardMessage.builder()
+            .message(MessageUtil.createEventMessage("Great move! " + nextMove.getName() + " play again."))
+            .pits(board.getPits())
+            .build();
+        break;
+      case SWITCH_PLAYER:
+        switchToOtherPlayer(message.getPlayer().getName());
+        boardMessage = BoardMessage.builder()
+            .message(MessageUtil.createEventMessage(nextMove.getName() + " it's your turn now."))
+            .pits(board.getPits())
+            .build();
+        break;
+      case GAME_OVER:
+        switchToOtherPlayer(message.getPlayer().getName());
+        boardMessage = BoardMessage.builder()
+            .message(MessageUtil.createEventMessage("GAME OVER - " + board.getResult()))
+            .pits(board.getPits())
+            .build();
+        reset();
+        break;
     }
+
     return boardMessage;
   }
 
